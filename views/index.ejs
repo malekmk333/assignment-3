@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+
+<div class="text-center">
+  <h1 class="mb-3">Welcome to the Assignment Tracker</h1>
+  <p class="lead">A simple tool to help you organize your school work.</p>
+
+  <% if (!currentUser) { %>
+    <a href="/register" class="btn btn-primary me-2">Get Started</a>
+    <a href="/login" class="btn btn-outline-secondary">Login</a>
+  <% } else { %>
+    <a href="/assignments" class="btn btn-primary">View My Assignments</a>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

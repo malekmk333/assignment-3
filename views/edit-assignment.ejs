@@ -1,0 +1,41 @@
+<%- include('partials/header') %>
+
+<h2>Edit Assignment</h2>
+
+<form method="POST" action="/assignments/<%= assignment._id %>" class="mt-3">
+
+  <div class="mb-3">
+    <label class="form-label">Title</label>
+    <input name="title" class="form-control" value="<%= assignment.title %>" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Course</label>
+    <input name="course" class="form-control" value="<%= assignment.course %>" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Due Date</label>
+
+    <input 
+      name="dueDate" 
+      type="date" 
+      class="form-control"
+      value="<%= assignment.dueDate.toISOString().split('T')[0] %>"
+      required
+    >
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Status</label>
+    <select name="status" class="form-control">
+      <option <%= assignment.status === "Pending" ? "selected" : "" %> >Pending</option>
+      <option <%= assignment.status === "In Progress" ? "selected" : "" %> >In Progress</option>
+      <option <%= assignment.status === "Completed" ? "selected" : "" %> >Completed</option>
+    </select>
+  </div>
+
+  <button class="btn btn-warning">Update</button>
+</form>
+
+<%- include('partials/footer') %>
