@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Auth guard for write operations
 function requireLogin(req, res, next) {
-  // support both your manual session and passport
+  // Works for BOTH passport OAuth + manual session login
   const loggedIn =
     (req.session && req.session.user) ||
     (req.isAuthenticated && req.isAuthenticated());
@@ -18,29 +18,31 @@ function requireLogin(req, res, next) {
   next();
 }
 
-// READ: list assignments
-// - If logged in: show only this user's assignments
-// - If NOT logged in: show all assignments (view-only mode)
+// READ — Everyone can view
+// Logged in  → show ONLY their assignments
+// Logged out → show ALL assignments (read-only)
 router.get('/', async (req, res) => {
-  let assignments;
+  let assignments = [];
 
   if (req.session && req.session.user) {
+    // User logged in → show THEIR assignments only
     assignments = await Assignment.find({
       user: req.session.user.id
     }).sort({ dueDate: 1 });
   } else {
+    // Not logged in → show ALL assignments
     assignments = await Assignment.find().sort({ dueDate: 1 });
   }
 
   res.render('assignments', { assignments });
 });
 
-// CREATE: show form (authenticated only)
+// CREATE — Show form (authenticated only)
 router.get('/new', requireLogin, (req, res) => {
   res.render('new-assignment');
 });
 
-// CREATE: handle form submit (authenticated only)
+// CREATE — Submit form 
 router.post('/', requireLogin, async (req, res) => {
   const { title, course, dueDate, status } = req.body;
 
@@ -55,7 +57,7 @@ router.post('/', requireLogin, async (req, res) => {
   res.redirect('/assignments');
 });
 
-// UPDATE: show edit form (authenticated only)
+// UPDATE — Show edit form
 router.get('/:id/edit', requireLogin, async (req, res) => {
   const assignment = await Assignment.findOne({
     _id: req.params.id,
@@ -69,7 +71,7 @@ router.get('/:id/edit', requireLogin, async (req, res) => {
   res.render('edit-assignment', { assignment });
 });
 
-// UPDATE: handle edit submit (authenticated only)
+// UPDATE — Submit changes
 router.post('/:id', requireLogin, async (req, res) => {
   const { title, course, dueDate, status } = req.body;
 
@@ -81,7 +83,7 @@ router.post('/:id', requireLogin, async (req, res) => {
   res.redirect('/assignments');
 });
 
-// DELETE: confirm delete page (authenticated only)
+// DELETE — Confirm delete page
 router.get('/:id/delete', requireLogin, async (req, res) => {
   const assignment = await Assignment.findOne({
     _id: req.params.id,
@@ -95,7 +97,7 @@ router.get('/:id/delete', requireLogin, async (req, res) => {
   res.render('delete-confirm', { assignment });
 });
 
-// DELETE: handle delete (authenticated only)
+// DELETE — Perform delete
 router.post('/:id/delete', requireLogin, async (req, res) => {
   await Assignment.deleteOne({
     _id: req.params.id,
