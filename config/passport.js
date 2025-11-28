@@ -4,6 +4,15 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const User = require('../models/User');
 
+// Use explicit callback URLs so we can force https in production
+const GOOGLE_CALLBACK_URL =
+  process.env.GOOGLE_CALLBACK_URL ||
+  'http://localhost:3000/auth/google/callback';
+
+const GITHUB_CALLBACK_URL =
+  process.env.GITHUB_CALLBACK_URL ||
+  'http://localhost:3000/auth/github/callback';
+
 // Serialize user ID into session
 passport.serializeUser((user, done) => {
   done(null, user.id); // MongoDB _id
@@ -25,7 +34,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: '/auth/google/callback'
+      callbackURL: GOOGLE_CALLBACK_URL
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -57,7 +66,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: '/auth/github/callback'
+      callbackURL: GITHUB_CALLBACK_URL
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

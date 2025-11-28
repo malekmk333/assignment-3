@@ -14,6 +14,7 @@ const authRoutes = require('./routes/authRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // connect to MongoDB
 connectDB();
