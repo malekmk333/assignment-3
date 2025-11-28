@@ -47,7 +47,6 @@ app.use(passport.session());
 
 // make user available in EJS
 app.use((req, res, next) => {
-  // prefer passport user, fallback to your manual session
   res.locals.currentUser = req.user || req.session.user;
   next();
 });
@@ -56,9 +55,9 @@ app.use((req, res, next) => {
 app.use('/', authRoutes);
 app.use('/assignments', assignmentRoutes);
 
-// home page
+// home page → always go to assignments list
 app.get('/', (req, res) => {
-  res.render('index');
+  res.redirect('/assignments');
 });
 
 const PORT = process.env.PORT || 3000;
