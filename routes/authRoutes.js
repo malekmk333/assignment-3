@@ -1,6 +1,7 @@
 // routes/authRoutes.js
 const express = require('express');
 const bcrypt = require('bcrypt');
+const passport = require('passport');
 const User = require('../models/User');
 
 const router = express.Router();
@@ -10,7 +11,7 @@ router.get('/register', (req, res) => {
   res.render('register');
 });
 
-// Handle register form
+// Handle register form (local username/password)
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
 
@@ -24,7 +25,6 @@ router.post('/register', async (req, res) => {
     res.redirect('/login');
   } catch (err) {
     console.error('Register error:', err.message);
-    // very simple error handling, reload page
     res.redirect('/register');
   }
 });
@@ -34,7 +34,7 @@ router.get('/login', (req, res) => {
   res.render('login');
 });
 
-// Handle login
+// Handle login (local username/password)
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -44,12 +44,12 @@ router.post('/login', async (req, res) => {
       return res.redirect('/login');
     }
 
-    const match = await bcrypt.compare(password, user.passwordHash);
+    const match = await bcrypt.compare(password, user.passwordHash || '');
     if (!match) {
       return res.redirect('/login');
     }
 
-    // save user in session
+    // save user in your session object
     req.session.user = { id: user._id, username: user.username };
     res.redirect('/assignments');
   } catch (err) {
@@ -58,10 +58,58 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// ---------- Google OAuth ----------
+
+// Start Google login
+router.get(
+  '/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+// Google callback
+router.get(
+  '/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // map passport user into same session.user structure
+    req.session.user = {
+      id: req.user._id,
+      username: req.user.username || req.user.displayName
+    };
+    res.redirect('/assignments');
+  }
+);
+
+// ---------- GitHub OAuth ----------
+
+// Start GitHub login
+router.get(
+  '/auth/github',
+  passport.authenticate('github', { scope: ['user:email'] })
+);
+
+// GitHub callback
+router.get(
+  '/auth/github/callback',
+  passport.authenticate('github', { failureRedirect: '/login' }),
+  (req, res) => {
+    req.session.user = {
+      id: req.user._id,
+      username: req.user.username || req.user.displayName
+    };
+    res.redirect('/assignments');
+  }
+);
+
 // Logout
-router.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/');
+router.get('/logout', (req, res, next) => {
+  // logout passport
+  req.logout(err => {
+    if (err) return next(err);
+    // destroy express-session
+    req.session.destroy(() => {
+      res.redirect('/');
+    });
   });
 });
 

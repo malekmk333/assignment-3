@@ -6,6 +6,10 @@ const MongoStore = require('connect-mongo');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
+
+// NEW: load passport config (sets up strategies)
+const passport = require('./config/passport');
+
 const authRoutes = require('./routes/authRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
 
@@ -36,9 +40,14 @@ app.use(
   })
 );
 
+// passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 // make user available in EJS
 app.use((req, res, next) => {
-  res.locals.currentUser = req.session.user;
+  // prefer passport user, fallback to your manual session
+  res.locals.currentUser = req.user || req.session.user;
   next();
 });
 
